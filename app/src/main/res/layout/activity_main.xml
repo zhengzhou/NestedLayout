@@ -1,0 +1,50 @@
+<com.zhou.nestedlayout.NestedLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true"
+    android:background="@color/material_palette_blue_primary_dark"
+    tools:context="com.mgyun.mytest.MaterialActivity">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:fitsSystemWindows="true"
+        android:orientation="vertical">
+        <!-- Your Scrollable View -->
+
+
+        <LinearLayout
+            android:id="@+id/header"
+            android:layout_width="match_parent"
+            android:layout_height="256dp"
+            android:background="@color/material_palette_blue_primary"
+            android:orientation="horizontal"
+            android:paddingLeft="5dp"
+            android:paddingRight="5dp"
+            >
+
+            <EditText
+                android:layout_width="match_parent"
+                android:layout_height="37dp"
+                android:layout_gravity="bottom"
+                android:background="#bfff"
+                android:textSize="20sp"
+                android:layout_margin="5dp"
+                android:focusable="true"
+                />
+        </LinearLayout>
+
+        <android.support.v7.widget.RecyclerView
+            android:id="@+id/recyclerView"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:minHeight="580dp"
+            android:clipToPadding="false"
+            android:padding="10dp"
+            />
+
+
+    </LinearLayout>
+</com.zhou.nestedlayout.NestedLayout>
