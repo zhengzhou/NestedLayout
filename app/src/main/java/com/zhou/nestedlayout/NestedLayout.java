@@ -1,9 +1,11 @@
 package com.zhou.nestedlayout;
 
 import android.content.Context;
+import android.support.v4.view.NestedScrollingChild;
 import android.support.v4.view.NestedScrollingParent;
 import android.support.v4.view.NestedScrollingParentHelper;
 import android.support.v4.view.ViewCompat;
+import android.support.v4.view.ViewPager;
 import android.util.AttributeSet;
 import android.view.View;
 import android.view.ViewGroup;
@@ -18,6 +20,8 @@ import com.orhanobut.logger.Logger;
 public final class NestedLayout extends FrameLayout implements NestedScrollingParent{
 
     private NestedScrollingParentHelper scrollingParentHelper;
+
+    private View headView;
 
     public NestedLayout(Context context) {
         super(context);
@@ -39,29 +43,68 @@ public final class NestedLayout extends FrameLayout implements NestedScrollingPa
     }
 
     @Override
+    protected void onFinishInflate() {
+        super.onFinishInflate();
+        headView = findViewById(R.id.header);
+    }
+
+    int getScrollDistance(){
+        return headView.getHeight() - 170;
+    }
+
+    boolean isHeadScroll(int dy){
+        return (dy > 0 && getScrollY() < getScrollDistance())
+        ||(dy < 0 && getScrollY() > 0);
+    }
+
+    @Override
+    protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
+        super.onLayout(changed, left, top, right, bottom);
+        for (int i = 0; i < getChildCount(); i++) {
+            if (NestedScrollingChild.class.isInstance(getChildAt(i))) {
+                getChildAt(i).layout(left, top + headView.getMeasuredHeight(), right,
+                        top + headView.getMeasuredHeight() + getHeight());
+            }
+        }
+
+    }
+
+    @Override
+    public void onNestedScrollAccepted(View child, View target, int axes) {
+        scrollingParentHelper.onNestedScrollAccepted(child, target, axes);
+    }
+
+    @Override
     public boolean onStartNestedScroll(View child, View target, int nestedScrollAxes) {
         //是垂直的滚动
         return (nestedScrollAxes & ViewCompat.SCROLL_AXIS_VERTICAL) != 0;
     }
 
     @Override
-    public void onNestedScrollAccepted(View child, View target, int axes) {
-        Logger.i("nestedScrollAxes: %d", axes);
-        scrollingParentHelper.onNestedScrollAccepted(child, target, axes);
-    }
-
-    @Override
     public void onNestedPreScroll(View target, int dx, int dy, int[] consumed) {
-        Logger.i("");
+        Logger.i("dx:%d, dy:%d, ScrollY:%d", dx, dy, getScrollY());
+        if(isHeadScroll(dy)) {
+            scrollBy(0, dy);
+            consumed[1] = dy;
+        }
     }
 
     @Override
     public void onNestedScroll(View target, int dxConsumed, int dyConsumed, int dxUnconsumed, int dyUnconsumed) {
-        Logger.i("");
+        Logger.i("dxConsumed:%d, dyConsumed:%d, dxUnconsumed:%d, dyUnconsumed:%d",dxConsumed, dyConsumed, dxUnconsumed, dyUnconsumed);
+        //headView
     }
 
     @Override
     public boolean onNestedPreFling(View target, float velocityX, float velocityY) {
+        if(isHeadScroll((int)velocityY)){
+            if(velocityY > 0){
+                scrollTo(0, getScrollDistance());
+            }else{
+                scrollTo(0, 0);
+            }
+            return true;
+        }
         return false;
     }
 
