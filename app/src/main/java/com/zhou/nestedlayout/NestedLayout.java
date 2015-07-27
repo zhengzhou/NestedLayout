@@ -64,6 +64,7 @@ public final class NestedLayout extends FrameLayout implements NestedScrollingPa
             if (NestedScrollingChild.class.isInstance(getChildAt(i))) {
                 getChildAt(i).layout(left, top + headView.getMeasuredHeight(), right,
                         top + headView.getMeasuredHeight() + getHeight());
+                break; // only contain one NestedScrollChild view.
             }
         }
 
