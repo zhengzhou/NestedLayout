@@ -45,7 +45,7 @@ public final class NestedLayout extends FrameLayout implements NestedScrollingPa
     @Override
     protected void onFinishInflate() {
         super.onFinishInflate();
-        headView = findViewById(R.id.header);
+        headView = findViewWithTag("NestedHead");
     }
 
     int getScrollDistance(){

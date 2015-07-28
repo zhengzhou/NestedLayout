@@ -1,11 +1,10 @@
-apply plugin: 'com.android.application'
+apply plugin: 'com.android.library'
 
 android {
     compileSdkVersion 22
     buildToolsVersion "22.0.1"
 
     defaultConfig {
-        applicationId "com.zhou.nestedlayout"
         minSdkVersion 17
         targetSdkVersion 22
         versionCode 1
@@ -23,13 +22,8 @@ def supportVersion = '22.2.1'
 
 
 dependencies {
-    compile fileTree(include: ['*.jar'], dir: 'libs')
+    compile fileTree(dir: 'libs', include: ['*.jar'])
+
     compile 'com.orhanobut:logger:1.10'
-    compile 'com.squareup.picasso:picasso:2.5.2'
-    compile "com.android.support:appcompat-v7:${supportVersion}"
     compile "com.android.support:support-v4:${supportVersion}"
-    compile "com.android.support:gridlayout-v7:${supportVersion}"
-    compile "com.android.support:recyclerview-v7:${supportVersion}"
-    compile "com.android.support:cardview-v7:${supportVersion}"
-    compile project(':library')
 }
