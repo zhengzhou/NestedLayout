@@ -49,7 +49,7 @@ public final class NestedLayout extends FrameLayout implements NestedScrollingPa
     }
 
     int getScrollDistance(){
-        return headView.getHeight() - 170;
+        return headView.getHeight() - 170;//todo hardCode
     }
 
     boolean isHeadScroll(int dy){
