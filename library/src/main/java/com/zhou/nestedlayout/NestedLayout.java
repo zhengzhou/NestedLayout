@@ -72,6 +72,11 @@ public final class NestedLayout extends FrameLayout implements NestedScrollingPa
             return 0;
     }
 
+    /**
+     * parent 还可以滑动
+     * @param dy
+     * @return
+     */
     boolean isHeadScroll(int dy){
         return (dy > 0 && getScrollY() < getScrollDistance())
         ||(dy < 0 && getScrollY() > 0);
@@ -108,6 +113,15 @@ public final class NestedLayout extends FrameLayout implements NestedScrollingPa
     public void onNestedPreScroll(View target, int dx, int dy, int[] consumed) {
 
         if(isHeadScroll(dy)) {
+//            Log.d("tag", getScrollY() + ", " + dy);
+//            Log.d("tag", getScrollDistance() +"");
+
+            //处理上下过界限的问题。
+            if(dy + getScrollY() > getScrollDistance()){
+                dy = getScrollDistance() - getScrollY();
+            }else if(dy + getScrollY() <0){
+                dy = -getScrollY();
+            }
             scrollBy(0, dy);
             consumed[1] += dy;
         }
@@ -131,9 +145,10 @@ public final class NestedLayout extends FrameLayout implements NestedScrollingPa
     @Override
     public void onStopNestedScroll(View child) {
         scrollingParentHelper.onStopNestedScroll(child);
-        if (getScrollY() > getScrollDistance()) {
+        int snap = 40;
+        if (getScrollY() + snap > getScrollDistance()) {
             scrollTo(0, getScrollDistance());
-        } else if (getScrollY() < 0) {
+        } else if (getScrollY() - snap < 0) {
             scrollTo(0, 0);
         }
     }
