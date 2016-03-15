@@ -5,7 +5,6 @@ import android.support.v4.view.NestedScrollingChild;
 import android.support.v4.view.NestedScrollingParent;
 import android.support.v4.view.NestedScrollingParentHelper;
 import android.support.v4.view.ViewCompat;
-import android.support.v4.view.ViewPager;
 import android.util.AttributeSet;
 import android.view.View;
 import android.view.ViewGroup;
@@ -49,7 +48,7 @@ public final class NestedLayout extends FrameLayout implements NestedScrollingPa
     }
 
     int getScrollDistance(){
-        return headView.getHeight() - 170;
+        return headView.getHeight() - 185;
     }
 
     boolean isHeadScroll(int dy){
@@ -58,12 +57,24 @@ public final class NestedLayout extends FrameLayout implements NestedScrollingPa
     }
 
     @Override
+    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+        for (int i = 0; i < getChildCount(); i++) {
+            if (NestedScrollingChild.class.isInstance(getChildAt(i))) {
+                measureChild(getChildAt(i), widthMeasureSpec,
+                        MeasureSpec.makeMeasureSpec(getMeasuredHeight()- getScrollDistance(), MeasureSpec.EXACTLY));
+                break; // only contain one NestedScrollChild view.
+            }
+        }
+    }
+
+    @Override
     protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
         super.onLayout(changed, left, top, right, bottom);
         for (int i = 0; i < getChildCount(); i++) {
             if (NestedScrollingChild.class.isInstance(getChildAt(i))) {
                 getChildAt(i).layout(left, top + headView.getMeasuredHeight(), right,
-                        top + headView.getMeasuredHeight() + getHeight());
+                        top + getScrollDistance() + getHeight());
                 break; // only contain one NestedScrollChild view.
             }
         }
@@ -86,7 +97,7 @@ public final class NestedLayout extends FrameLayout implements NestedScrollingPa
         Logger.i("dx:%d, dy:%d, ScrollY:%d", dx, dy, getScrollY());
         if(isHeadScroll(dy)) {
             scrollBy(0, dy);
-            consumed[1] = dy;
+            consumed[1] += dy;
         }
     }
 
@@ -98,14 +109,14 @@ public final class NestedLayout extends FrameLayout implements NestedScrollingPa
 
     @Override
     public boolean onNestedPreFling(View target, float velocityX, float velocityY) {
-        if(isHeadScroll((int)velocityY)){
+        /*if(isHeadScroll((int)velocityY)){
             if(velocityY > 0){
                 scrollTo(0, getScrollDistance());
             }else{
                 scrollTo(0, 0);
             }
             return true;
-        }
+        }*/
         return false;
     }
 
@@ -118,6 +129,12 @@ public final class NestedLayout extends FrameLayout implements NestedScrollingPa
     public void onStopNestedScroll(View child) {
         Logger.i("");
         scrollingParentHelper.onStopNestedScroll(child);
+        if (getScrollY() > getScrollDistance()) {
+            scrollTo(0, getScrollDistance());
+        } else if (getScrollY() < 0) {
+            scrollTo(0, 0);
+
+        }
     }
 
     @Override
