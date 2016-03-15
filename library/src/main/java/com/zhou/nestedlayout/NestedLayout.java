@@ -1,6 +1,9 @@
 package com.zhou.nestedlayout;
 
+import android.annotation.TargetApi;
 import android.content.Context;
+import android.content.res.TypedArray;
+import android.os.Build;
 import android.support.v4.view.NestedScrollingChild;
 import android.support.v4.view.NestedScrollingParent;
 import android.support.v4.view.NestedScrollingParentHelper;
@@ -10,7 +13,8 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.FrameLayout;
 
-import com.orhanobut.logger.Logger;
+import com.zaynzhou.library.R;
+
 
 /**
  * 嵌套布局.
@@ -21,6 +25,7 @@ public final class NestedLayout extends FrameLayout implements NestedScrollingPa
     private NestedScrollingParentHelper scrollingParentHelper;
 
     private View headView;
+    private NestedScrollingChild body;
 
     public NestedLayout(Context context) {
         super(context);
@@ -44,11 +49,27 @@ public final class NestedLayout extends FrameLayout implements NestedScrollingPa
     @Override
     protected void onFinishInflate() {
         super.onFinishInflate();
-        headView = findViewById(R.id.header);
+        for (int i = 0; i < getChildCount(); i++) {
+            View v = getChildAt(i);
+            LayoutParams layoutParams = (LayoutParams) v.getLayoutParams();
+            if(layoutParams.viewType == LayoutParams.HEAD){
+                headView = v;
+            }else if(NestedScrollingChild.class.isInstance(getChildAt(i))
+                    && layoutParams.viewType == LayoutParams.BODY){
+                body = (NestedScrollingChild) v;
+            }
+        }
+        if(body == null){
+            throw new IllegalStateException("nestScroll child not found!");
+        }
+        //headView = findViewById(R.id.header);
     }
 
     int getScrollDistance(){
-        return headView.getHeight() - 185;
+        if(headView != null)
+            return headView.getHeight() - headView.getMinimumHeight();
+        else
+            return 0;
     }
 
     boolean isHeadScroll(int dy){
@@ -59,25 +80,16 @@ public final class NestedLayout extends FrameLayout implements NestedScrollingPa
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-        for (int i = 0; i < getChildCount(); i++) {
-            if (NestedScrollingChild.class.isInstance(getChildAt(i))) {
-                measureChild(getChildAt(i), widthMeasureSpec,
-                        MeasureSpec.makeMeasureSpec(getMeasuredHeight()- getScrollDistance(), MeasureSpec.EXACTLY));
-                break; // only contain one NestedScrollChild view.
-            }
-        }
+
+        measureChild((View) body, widthMeasureSpec,
+               MeasureSpec.makeMeasureSpec(getMeasuredHeight() - getScrollDistance(), MeasureSpec.EXACTLY));
     }
 
     @Override
     protected void onLayout(boolean changed, int left, int top, int right, int bottom) {
         super.onLayout(changed, left, top, right, bottom);
-        for (int i = 0; i < getChildCount(); i++) {
-            if (NestedScrollingChild.class.isInstance(getChildAt(i))) {
-                getChildAt(i).layout(left, top + headView.getMeasuredHeight(), right,
-                        top + getScrollDistance() + getHeight());
-                break; // only contain one NestedScrollChild view.
-            }
-        }
+        ((View) body).layout(left, top + headView.getMeasuredHeight(), right,
+                top + getScrollDistance() + getHeight());
 
     }
 
@@ -94,7 +106,7 @@ public final class NestedLayout extends FrameLayout implements NestedScrollingPa
 
     @Override
     public void onNestedPreScroll(View target, int dx, int dy, int[] consumed) {
-        Logger.i("dx:%d, dy:%d, ScrollY:%d", dx, dy, getScrollY());
+
         if(isHeadScroll(dy)) {
             scrollBy(0, dy);
             consumed[1] += dy;
@@ -103,20 +115,11 @@ public final class NestedLayout extends FrameLayout implements NestedScrollingPa
 
     @Override
     public void onNestedScroll(View target, int dxConsumed, int dyConsumed, int dxUnconsumed, int dyUnconsumed) {
-        Logger.i("dxConsumed:%d, dyConsumed:%d, dxUnconsumed:%d, dyUnconsumed:%d",dxConsumed, dyConsumed, dxUnconsumed, dyUnconsumed);
         //headView
     }
 
     @Override
     public boolean onNestedPreFling(View target, float velocityX, float velocityY) {
-        /*if(isHeadScroll((int)velocityY)){
-            if(velocityY > 0){
-                scrollTo(0, getScrollDistance());
-            }else{
-                scrollTo(0, 0);
-            }
-            return true;
-        }*/
         return false;
     }
 
@@ -127,13 +130,11 @@ public final class NestedLayout extends FrameLayout implements NestedScrollingPa
 
     @Override
     public void onStopNestedScroll(View child) {
-        Logger.i("");
         scrollingParentHelper.onStopNestedScroll(child);
         if (getScrollY() > getScrollDistance()) {
             scrollTo(0, getScrollDistance());
         } else if (getScrollY() < 0) {
             scrollTo(0, 0);
-
         }
     }
 
@@ -143,17 +144,56 @@ public final class NestedLayout extends FrameLayout implements NestedScrollingPa
     }
 
     @Override
-    protected LayoutParams generateDefaultLayoutParams() {
-        return super.generateDefaultLayoutParams();
-    }
-
-    @Override
     public LayoutParams generateLayoutParams(AttributeSet attrs) {
-        return super.generateLayoutParams(attrs);
+        return new LayoutParams(getContext(), attrs);
     }
 
     @Override
-    protected ViewGroup.LayoutParams generateLayoutParams(ViewGroup.LayoutParams p) {
-        return super.generateLayoutParams(p);
+    protected LayoutParams generateLayoutParams(ViewGroup.LayoutParams p) {
+        if (p instanceof LayoutParams) {
+            return new LayoutParams((LayoutParams) p);
+        } else if (p instanceof MarginLayoutParams) {
+            return new LayoutParams((MarginLayoutParams) p);
+        }
+        return new LayoutParams(p);
+    }
+
+    @Override
+    protected LayoutParams generateDefaultLayoutParams() {
+        return new LayoutParams(LayoutParams.WRAP_CONTENT, LayoutParams.WRAP_CONTENT);
+    }
+
+    public static class LayoutParams extends FrameLayout.LayoutParams {
+
+        public static final int HEAD = 1;
+        public static final int BODY = 2;
+        public static final int FOOT = 3;
+
+        int viewType = BODY;
+
+        public LayoutParams(Context c, AttributeSet attrs) {
+            super(c, attrs);
+            final TypedArray a = c.obtainStyledAttributes(attrs, R.styleable.NestedLayout_LayoutParams);
+            viewType = a.getInt(R.styleable.NestedLayout_LayoutParams_nest_viewType, BODY);
+            a.recycle();
+        }
+
+        public LayoutParams(int width, int height) {
+            super(width, height);
+        }
+
+        @TargetApi(Build.VERSION_CODES.KITKAT)
+        public LayoutParams(LayoutParams p) {
+            super(p);
+        }
+
+        public LayoutParams(MarginLayoutParams p) {
+            super(p);
+        }
+
+        public LayoutParams(ViewGroup.LayoutParams p) {
+            super(p);
+        }
+
     }
 }

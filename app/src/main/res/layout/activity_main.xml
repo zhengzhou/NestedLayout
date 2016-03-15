@@ -11,11 +11,13 @@
             android:id="@+id/header"
             android:layout_width="match_parent"
             android:layout_height="256dp"
+            android:minHeight="60dp"
             android:background="@color/material_palette_blue_primary"
             android:orientation="horizontal"
             android:paddingLeft="5dp"
             android:paddingRight="5dp"
             android:tag="NestedHead"
+            app:nest_viewType="head"
             >
 
             <EditText
@@ -24,8 +26,8 @@
                 android:layout_gravity="bottom"
                 android:background="#bfff"
                 android:textSize="20sp"
-                android:layout_margin="5dp"
-                android:focusable="true"
+                android:layout_margin="4dp"
+                android:focusable="false"
                 />
         </LinearLayout>
 

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <declare-styleable name="NestedLayout.LayoutParams">
+        <attr name="nest_viewType" format="enum">
+            <enum name="head" value="1"/>
+            <enum name="body" value="2"/>
+        </attr>
+    </declare-styleable>
+
+</resources>
